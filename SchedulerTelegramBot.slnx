@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SchedulerTelegramBot.Contracts/SchedulerTelegramBot.Contracts.csproj" Id="bb10af65-e40e-4015-a1fc-e5df8d69bf16" />
+  <Project Path="SchedulerTelegramBot.PaymentApi/SchedulerTelegramBot.PaymentApi.csproj" Id="552f5ce9-a34d-498d-bdff-cb7a8e224424" />
+  <Project Path="SchedulerTelegramBot.Utils.Yoomoney/SchedulerTelegramBot.Utils.Yoomoney.csproj" />
+  <Project Path="SchedulerTelegramBot/SchedulerTelegramBot.csproj" />
+</Solution>

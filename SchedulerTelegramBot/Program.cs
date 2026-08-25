@@ -1,0 +1,65 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Quartz;
+using SchedulerTelegramBot.Bot.Stores;
+using SchedulerTelegramBot.Data;
+using SchedulerTelegramBot.GlobalErrorHandlers;
+using Telegrator;
+using Telegrator.Hosting;
+
+public partial class Program
+{
+    private static async Task Main(string[] args)
+    {
+
+        DotNetEnv.Env.Load(".env");
+
+        var tgBuilder = TelegramBotHost.CreateBuilder(new TelegramBotHostBuilderSettings()
+        {
+            Args = args,
+            ExceptIntersectingCommandAliases = true,
+        });
+
+        tgBuilder.Handlers.CollectHandlersAssemblyWide();
+       
+        var connectionString = tgBuilder.Configuration.GetConnectionString("DefaultConnection");
+
+        if (connectionString == null)
+        {
+            throw new ArgumentNullException(nameof(connectionString));
+        }
+
+        tgBuilder.Services.AddDbContext<SchedulerDbContext>(options => options.UseSqlite(connectionString));
+
+        tgBuilder.Services.AddSingleton<AddNotificationCommandInfoStore>();
+
+        tgBuilder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+        tgBuilder.Services.AddQuartz();
+
+        tgBuilder.Services.AddQuartzHostedService(options =>
+        {
+            options.WaitForJobsToComplete = true;
+        });
+       
+        TelegramBotHost telegramBot = tgBuilder.Build();
+
+        telegramBot.UpdateRouter.ExceptionHandler = new GlobalExcepitonHandler(telegramBot.Services.GetService<ILogger<GlobalExcepitonHandler>>()!);
+        
+        telegramBot.SetBotCommands();
+        
+        using (var context = telegramBot.Services.GetRequiredService<SchedulerDbContext>())
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+            await context.Database.MigrateAsync();
+        }
+
+        await telegramBot.RunAsync();
+    }
+}
