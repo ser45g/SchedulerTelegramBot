@@ -32,39 +32,38 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
             var notificationDateString = message.Text;
 
-            if(DateTime.TryParse(notificationDateString, out DateTime taskNotifyDate))
-            {        
-                long? chatId = container.HandlingUpdate.Message?.Chat.Id;
-
-                if(chatId == null)
-                    throw new ArgumentNullException(nameof(chatId));
-                
-
-                var storedData = _infoStore.Get(chatId.Value);
-
-                if (storedData == null)
-                    throw new ArgumentNullException(nameof(storedData));
-
-                storedData.NotifyDate = taskNotifyDate;
-
-                _infoStore.Set(chatId.Value, storedData);
-                
-                if(storedData.Title == null)
-                    throw new ArgumentNullException(nameof(storedData.Title));
-
-                await _sender.Send(new CreateNotificationRequest(storedData.Title, chatId.Value, taskNotifyDate, storedData.Description));
-
-                container.DeleteEnumState<AddNotificationCommandInputUserState>();
-
-                await Reply("The task was successfully added!", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());                
-            }
-            else
+            if (DateTime.TryParse(notificationDateString, out DateTime taskNotifyDate))
             {
-                await Reply("Nofity date was invalid. Try again", cancellationToken:cancellation, replyMarkup: new ReplyKeyboardRemove());
+                await Reply("Nofity date was invalid. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+                return Result.Fault();
+            }
+
+            try
+            {
+                long chatId = container.ActualUpdate.Chat.Id;
+
+                var storedData = _infoStore.Get(chatId);
+
+                ArgumentNullException.ThrowIfNull(storedData, nameof(storedData));
+
+                ArgumentNullException.ThrowIfNull(storedData.Title, nameof(storedData.Title));
+
+                await _sender.Send(new CreateNotificationRequest(storedData.Title, chatId, taskNotifyDate, storedData.Description));
+                
+                container.DeleteEnumState<AddNotificationCommandInputUserState>();
+                
+                //need to add outbox, it may fail to send that message
+                await Reply("The task was successfully added!", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+
+                return Result.Ok();
 
             }
-         
-            return Result.Ok();
+            catch (Exception ex) {
+                //same
+                await Reply("Could not add a task", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+            }
+
+            return Result.Fault();
         }
     }
 

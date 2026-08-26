@@ -16,7 +16,7 @@ namespace SchedulerTelegramBot.PaymentApi.Mediatr.Handlers
                 var client = new Client(token: options.Value.AccessToken);
 
                 //Payment method. Possible values: PC - payment from the YuMoney wallet; AC - from a bank card.
-                var quickpay = new Quickpay(receiver: options.Value.Reciever, quickpayForm: "shop", sum: request.Amount, label: "Buying a perimium subscription for the SimpleLearning bot", email: options.Value.Email, paymentType: "AC"); 
+                var quickpay = new Quickpay(receiver: options.Value.Reciever, quickpayForm: "shop", sum: request.Amount, label: request.ChatId.ToString(), email: options.Value.Email, paymentType: "AC", firstname: "Sergey", lastname: "Alexashin", sender: request.ChatId.ToString()); 
 
                 return quickpay.LinkPayment;
 

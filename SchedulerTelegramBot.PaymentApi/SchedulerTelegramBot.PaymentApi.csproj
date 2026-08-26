@@ -12,6 +12,7 @@
 	<PackageReference Include="DotNetEnv" Version="3.2.0" />
 	<PackageReference Include="MediatR" Version="14.0.0" />
 	<PackageReference Include="YoomoneyApi" Version="1.0.6" />
+	<PackageReference Include="MassTransit.RabbitMQ" Version="9.2.0-develop.154" />
   </ItemGroup>
 
   <ItemGroup>

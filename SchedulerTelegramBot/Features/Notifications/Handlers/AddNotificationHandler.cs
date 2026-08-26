@@ -16,9 +16,9 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
             var notification = new Notification() {
                 Title = request.Title,
                 Description = request.Description,
-                AddedDateTime = DateTime.UtcNow,
+                AddedAtUtc = DateTime.UtcNow,
                 ChatId = request.ChatId,
-                NotifyDateTime = request.NotifyDateTime,
+                NotifyAtUtc= request.NotifyDateTime,
                 PeriodicNotificationPeriod = request.PeriodicNotificationPeriod,
             };
     
@@ -36,7 +36,7 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
 
             IJobDetail job = JobBuilder.Create<NotifyUserJob>().UsingJobData(jobData).Build();
     
-            ITrigger trigger = TriggerBuilder.Create().WithIdentity($"notify-user-{notification.Id}").ForJob(job).StartAt(notification.NotifyDateTime).Build();
+            ITrigger trigger = TriggerBuilder.Create().WithIdentity($"notify-user-{notification.Id}").ForJob(job).StartAt(notification.NotifyAtUtc).Build();
     
             await scheduler.ScheduleJob(job, trigger, cancellationToken);
     

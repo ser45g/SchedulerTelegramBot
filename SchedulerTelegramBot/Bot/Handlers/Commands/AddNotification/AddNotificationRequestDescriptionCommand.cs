@@ -29,28 +29,38 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
             if (!string.IsNullOrWhiteSpace(title))
             {
-                container.ForwardEnumState<AddNotificationCommandInputUserState>();
+                await Reply("Title was invalid. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+
+                return Result.Fault();
+            }
+
+            try
+            {
                 long? chatId = container.HandlingUpdate.Message?.Chat.Id;
-            
-                if (chatId == null)
-                    throw new ArgumentNullException(nameof(chatId));
+
+                ArgumentNullException.ThrowIfNull(chatId, nameof(chatId));
 
                 var storedData = _infoStore.Get(chatId.Value);
-                if (storedData == null)
-                    storedData = new AddNotificationCommandInfoStore.StoreData();
+
+                ArgumentNullException.ThrowIfNull(storedData, nameof(storedData));
+
                 storedData.Title = title;
+
+                await container.Reply($" Please enter the description (optional):", replyMarkup: new[] { "<Skip>" }, cancellationToken: cancellation);
 
                 _infoStore.Set(chatId.Value, storedData);
 
-                await container.Reply($" Please enter the description (optional):",replyMarkup: new[] {"Skip"}, cancellationToken: cancellation);
-            }
-            else
-            {
-                await Reply("Title for a task cannot be empty. Try again", cancellationToken:cancellation, replyMarkup: new ReplyKeyboardRemove());
+                container.ForwardEnumState<AddNotificationCommandInputUserState>();
+                
+                return Result.Ok();
 
             }
-                
-            return Result.Ok();
+            catch (Exception ex) 
+            {
+                await Reply("Could not process the message. Please try again later", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+
+                return Result.Fault();
+            }
         }
     }
 

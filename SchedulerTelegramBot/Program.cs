@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using SchedulerTelegramBot.Bot.Stores;
+using SchedulerTelegramBot.Consumers;
 using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.GlobalErrorHandlers;
 using Telegrator;
@@ -44,7 +46,24 @@ public partial class Program
         {
             options.WaitForJobsToComplete = true;
         });
-       
+
+        tgBuilder.Services.AddMassTransit(configure =>
+        {
+
+            configure.AddConsumer<PaymentSucceededConsumer>();
+
+            configure.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host("amqp://localhost:5672", h =>
+                {
+                    h.Username("rabbitmq");
+                    h.Password("rabbitmq");
+                });
+
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+
         TelegramBotHost telegramBot = tgBuilder.Build();
 
         telegramBot.UpdateRouter.ExceptionHandler = new GlobalExcepitonHandler(telegramBot.Services.GetService<ILogger<GlobalExcepitonHandler>>()!);

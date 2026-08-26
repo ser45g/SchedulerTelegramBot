@@ -19,9 +19,9 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
 
             notification.Title = request.Title;
             notification.Description = request.Description;
-            notification.LastUpdatedDateTime = DateTime.UtcNow;
+            notification.LastUpdatedAtUtc = DateTime.UtcNow;
             notification.ChatId = request.ChatId;
-            notification.NotifyDateTime = request.NotifyDateTime;
+            notification.NotifyAtUtc = request.NotifyDateTime;
             notification.PeriodicNotificationPeriod = request.PeriodicNotificationPeriod;
 
             await dbContext.SaveChangesAsync(cancellationToken);

@@ -25,30 +25,37 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
         {
             var message = container.ActualUpdate;
 
-            var description = message.Text;
-            
-            if(description == "Skip")
+            var description = message.Text== "<Skip>"? null: message.Text;
+            try
             {
-                description=null;
+                long? chatId = container.HandlingUpdate.Message?.Chat.Id;
+
+                ArgumentNullException.ThrowIfNull(chatId, nameof(chatId));
+
+                var storedData = _infoStore.Get(chatId.Value);
+
+                ArgumentNullException.ThrowIfNull(storedData, nameof(storedData));
+
+                storedData.Description = description;
+
+                _infoStore.Set(chatId.Value, storedData);
+
+                await container.Reply($"Okay, now enter the date when you want to be notified. For example, 2026-01-10     02:00:00:", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+
+                container.ForwardEnumState<AddNotificationCommandInputUserState>();
+                
+                return Result.Ok();
+
             }
-            container.ForwardEnumState<AddNotificationCommandInputUserState>();
+            catch (Exception ex)
+            {
+                await container.Reply($"Could not process the request. Try again later", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
 
-            long? chatId = container.HandlingUpdate.Message?.Chat.Id;
+                return Result.Fault();
 
-            if (chatId == null)
-                throw new ArgumentNullException(nameof(chatId));
-
-            var storedData = _infoStore.Get(chatId.Value);
-            if (storedData == null)
-                storedData = new AddNotificationCommandInfoStore.StoreData();
-            storedData.Description = description;
-
-            _infoStore.Set(chatId.Value, storedData);
+            }
 
 
-            await container.Reply($" Okay, now enter the date when you want to be notified. For example, 2026-01-10 02:00:00:", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
-
-            return Result.Ok();
         }
     }
 
