@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using SchedulerTelegramBot.Bot.Stores;
 using SchedulerTelegramBot.Features.Notifications.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -14,14 +13,14 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 {
     [MessageHandler]
     [ChatType(ChatType.Private)]
-    [EnumState<AddNotificationCommandInputUserState>(AddNotificationCommandInputUserState.WaitingForNotificationDate)]
-    public class AddNotificationEndCommand : MessageHandler
+    [EnumState<InputUserState>(InputUserState.WaitingForNotificationDate)]
+    public class AddNotificationCommand_3 : MessageHandler
     {
-        private readonly AddNotificationCommandInfoStore _infoStore;
+        private readonly InfoStore _infoStore;
 
         private readonly ISender _sender;
 
-        public AddNotificationEndCommand(ISender sender, AddNotificationCommandInfoStore infoStore)
+        public AddNotificationCommand_3(ISender sender, InfoStore infoStore)
         {
             _sender = sender;
             _infoStore = infoStore;
@@ -32,7 +31,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
             var notificationDateString = message.Text;
 
-            if (DateTime.TryParse(notificationDateString, out DateTime taskNotifyDate))
+            if (!DateTime.TryParse(notificationDateString, out DateTime taskNotifyDate))
             {
                 await Reply("Nofity date was invalid. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
                 return Result.Fault();
@@ -50,7 +49,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
                 await _sender.Send(new CreateNotificationRequest(storedData.Title, chatId, taskNotifyDate, storedData.Description));
                 
-                container.DeleteEnumState<AddNotificationCommandInputUserState>();
+                container.DeleteEnumState<InputUserState>();
                 
                 //need to add outbox, it may fail to send that message
                 await Reply("The task was successfully added!", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
@@ -61,10 +60,8 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
             catch (Exception ex) {
                 //same
                 await Reply("Could not add a task", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+                return Result.Fault();
             }
-
-            return Result.Fault();
         }
     }
-
 }

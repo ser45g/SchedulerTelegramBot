@@ -12,11 +12,11 @@ namespace SchedulerTelegramBot.Bot.Aspects
         public Task<Result> BeforeExecution(IHandlerContainer container, CancellationToken cancellationToken = default)
         {
 
-            var hasState = container.EnumStateKeeper<AddNotificationCommandInputUserState>().HasState(container.HandlingUpdate);
+            var hasState = container.EnumStateKeeper<InputUserState>().HasState(container.HandlingUpdate);
 
-            if (hasState && (container.EnumStateKeeper<AddNotificationCommandInputUserState>().GetState(container.HandlingUpdate) != AddNotificationCommandInputUserState.Start))
+            if (hasState && (container.EnumStateKeeper<InputUserState>().GetState(container.HandlingUpdate) != InputUserState.Start))
             {
-                container.DeleteEnumState<AddNotificationCommandInputUserState>();
+                container.DeleteEnumState<InputUserState>();
             }
 
             return Task.FromResult(Result.Ok());

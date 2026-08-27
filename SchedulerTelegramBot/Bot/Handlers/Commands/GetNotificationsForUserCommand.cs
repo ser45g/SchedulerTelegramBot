@@ -21,15 +21,9 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
 
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellationToken)
         {
-            var chatId = container.HandlingUpdate.Message?.Chat.Id;
+            var chatId = container.ActualUpdate.Chat.Id;
 
-            if (chatId == null)
-            {
-                await Reply("Something went wrong. Try again", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
-                return Result.Fault();
-            }
-
-            var notifications = await _sender.Send(new GetAllNotificationsForUserRequest(chatId.Value), cancellationToken: cancellationToken);
+            var notifications = await _sender.Send(new GetAllNotificationsForUserRequest(chatId), cancellationToken: cancellationToken);
 
             var buttons = new List<InlineKeyboardButton[]> { };
 
@@ -39,9 +33,8 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
 
                 buttons.Add(new InlineKeyboardButton[] { InlineKeyboardButton.WithCallbackData($"{notification.Title} - {mark}", $"get-notif-{notification.Id}") });
             }
-            await Responce("""
-                Here is a list of all your notificaions:
-                """, replyMarkup: new InlineKeyboardMarkup(buttons.ToArray()), cancellationToken:cancellationToken);
+
+            await Responce("Here is a list of all your notificaions:", replyMarkup: new InlineKeyboardMarkup(buttons.ToArray()), cancellationToken:cancellationToken);
 
             return Result.Ok();
         }

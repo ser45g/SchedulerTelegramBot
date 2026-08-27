@@ -19,7 +19,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
 
             try
             {
-                var response = await httpClient.PostAsJsonAsync("https://localhost:8081/payment-link", new BuySubscriptionRequest(container.ActualUpdate.Chat.Id, 2), cancellationToken: cancellation);
+                var response = await httpClient.PostAsJsonAsync("https://localhost:8081/payment-link", new BuySubscriptionRequest(container.ActualUpdate.Chat.Id, 10), cancellationToken: cancellation);
                 
                 if (response.IsSuccessStatusCode)
                 {

@@ -1,5 +1,4 @@
-﻿using SchedulerTelegramBot.Bot.Stores;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegrator;
@@ -12,12 +11,12 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 {
     [MessageHandler]
     [ChatType(ChatType.Private)]
-    [EnumState<AddNotificationCommandInputUserState>(AddNotificationCommandInputUserState.WaitingForTitle)]
-    public class AddNotificationRequestDescriptionCommand : MessageHandler
+    [EnumState<InputUserState>(InputUserState.WaitingForTitle)]
+    public class AddNotificationCommand_1 : MessageHandler
     {
-        private readonly AddNotificationCommandInfoStore _infoStore;
+        private readonly InfoStore _infoStore;
 
-        public AddNotificationRequestDescriptionCommand(AddNotificationCommandInfoStore infoStore)
+        public AddNotificationCommand_1(InfoStore infoStore)
         {
             _infoStore = infoStore;
         }
@@ -27,7 +26,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
             var title = message.Text;
 
-            if (!string.IsNullOrWhiteSpace(title))
+            if (string.IsNullOrWhiteSpace(title))
             {
                 await Reply("Title was invalid. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
 
@@ -36,21 +35,20 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
             try
             {
-                long? chatId = container.HandlingUpdate.Message?.Chat.Id;
+                long chatId = container.ActualUpdate.Chat.Id;
 
-                ArgumentNullException.ThrowIfNull(chatId, nameof(chatId));
+                var storedData = _infoStore.Get(chatId);
 
-                var storedData = _infoStore.Get(chatId.Value);
-
-                ArgumentNullException.ThrowIfNull(storedData, nameof(storedData));
+                if (storedData == null)
+                    storedData = new InfoStore.StoreData();
 
                 storedData.Title = title;
 
-                await container.Reply($" Please enter the description (optional):", replyMarkup: new[] { "<Skip>" }, cancellationToken: cancellation);
+                await container.Reply($"Please enter the description (optional):", replyMarkup: new[] { "<Skip>" }, cancellationToken: cancellation);
 
-                _infoStore.Set(chatId.Value, storedData);
+                _infoStore.Set(chatId, storedData);
 
-                container.ForwardEnumState<AddNotificationCommandInputUserState>();
+                container.ForwardEnumState<InputUserState>();
                 
                 return Result.Ok();
 

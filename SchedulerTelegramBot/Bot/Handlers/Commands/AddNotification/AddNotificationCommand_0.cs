@@ -13,15 +13,14 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
     [CommandHandler]
     [BeforeExecution<CleanUpAddNotificationInputUserStatePreProcessor>]
     [CommandAllias("add_notification")]
-    public class AddNotificationRequestTitleCommand : CommandHandler
+    public class AddNotificationCommand_0 : CommandHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
-            container.ForwardEnumState<AddNotificationCommandInputUserState>();
 
-            await Responce("""
-                To add a notification, we'll need some information. What is the task name?
-                """, cancellationToken:cancellation, replyMarkup: new ReplyKeyboardRemove());
+            await Responce("To add a notification, we'll need some information. What is the task name?", cancellationToken:cancellation, replyMarkup: new ReplyKeyboardRemove());
+
+            container.ForwardEnumState<InputUserState>();
 
             return Result.Ok();
         }

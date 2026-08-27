@@ -2,7 +2,7 @@
 
 namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 {
-    public enum AddNotificationCommandInputUserState
+    public enum InputUserState
     {
         Start = SpecialState.NoState,
         WaitingForTitle,

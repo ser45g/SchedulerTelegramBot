@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartz;
-using SchedulerTelegramBot.Bot.Stores;
 using SchedulerTelegramBot.Consumers;
 using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.GlobalErrorHandlers;
@@ -36,7 +35,7 @@ public partial class Program
 
         tgBuilder.Services.AddDbContext<SchedulerDbContext>(options => options.UseSqlite(connectionString));
 
-        tgBuilder.Services.AddSingleton<AddNotificationCommandInfoStore>();
+        tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification.InfoStore>();
 
         tgBuilder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 

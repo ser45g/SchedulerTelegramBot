@@ -1,9 +1,9 @@
 ﻿using Quartz.Util;
 using System.Collections.Concurrent;
 
-namespace SchedulerTelegramBot.Bot.Stores
+namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 {
-    public class AddNotificationCommandInfoStore
+    public class InfoStore
     {
         public class StoreData
         {
@@ -23,7 +23,7 @@ namespace SchedulerTelegramBot.Bot.Stores
             _data[id]= data;
         }
 
-        public AddNotificationCommandInfoStore() 
+        public InfoStore() 
         {
             _data = new ConcurrentDictionary<long, StoreData>();
         }
