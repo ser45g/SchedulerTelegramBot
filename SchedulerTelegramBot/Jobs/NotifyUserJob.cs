@@ -1,6 +1,5 @@
 ﻿using Quartz;
 using SchedulerTelegramBot.Data;
-using SchedulerTelegramBot.Entities;
 using Telegram.Bot;
 
 namespace SchedulerTelegramBot.Jobs
@@ -13,15 +12,12 @@ namespace SchedulerTelegramBot.Jobs
 
             long? chatId = jobData.GetLong("ChatId");
 
-            if (chatId == null)
-                throw new ArgumentNullException(nameof(chatId));
-
             Guid? notificationId = jobData.GetGuid("NotificationId");
 
-            if (notificationId==null)
-                throw new ArgumentNullException(nameof(notificationId));
+            if (notificationId == null || chatId == null)
+                return;
 
-            var notification = await schedulerDbContext.Notifications.FindAsync(notificationId);
+            var notification = await schedulerDbContext.Notifications.FindAsync(notificationId, context.CancellationToken);
 
             if (notification == null)
                 return;

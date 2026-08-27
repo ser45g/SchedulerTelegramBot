@@ -1,7 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using SchedulerTelegramBot.Contracts.Payment;
-using System.Net.Http.Json;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 using Telegrator;
 using Telegrator.Annotations;
 using Telegrator.Handlers;
@@ -10,35 +8,25 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
 {
     [CommandHandler]
     [CommandAllias("buy")]
-    public class BuyPremiumSubscriptionCommand(IConfiguration configuration, IHttpClientFactory httpClientFactory) : CommandHandler
+    public class BuyPremiumSubscriptionCommand : CommandHandler
     {
-
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
-            using var httpClient = httpClientFactory.CreateClient();
+            long chatId = container.ActualUpdate.Chat.Id;
 
-            try
+            List<string> paymentApiNames = ["yoomoney", "yookassa"];
+
+            var buttons = new List<InlineKeyboardButton[]> { };
+
+            foreach (var apiName in paymentApiNames)
             {
-                var response = await httpClient.PostAsJsonAsync("https://localhost:8081/payment-link", new BuySubscriptionRequest(container.ActualUpdate.Chat.Id, 10), cancellationToken: cancellation);
                 
-                if (response.IsSuccessStatusCode)
-                {
-                    var link = await response.Content.ReadFromJsonAsync<GetPaymentLinkRequest>(cancellationToken: cancellation);
-
-                    if(link != null)
-                    {
-                        await container.Responce(link.Link, cancellationToken: cancellation);
-
-                        return Result.Ok();
-                    }
-                }
+                buttons.Add(new InlineKeyboardButton[] { InlineKeyboardButton.WithCallbackData($"{apiName}", $"buy-subscription-{apiName}") });
             }
-            catch (Exception ex) { 
-                
-            }
-            await container.Responce("Could not recieve a payment link. Please, try again later.", cancellationToken: cancellation);
 
-            return Result.Fault();
+            await Responce("Choose your payment method", replyMarkup: buttons.ToArray(), cancellationToken: cancellation);
+
+            return Result.Ok();
         }
     }
 }

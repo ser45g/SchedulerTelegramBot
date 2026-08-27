@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers.Attributes;
-using SchedulerTelegramBot.Features.Notifications.Handlers;
 using SchedulerTelegramBot.Features.Notifications.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
