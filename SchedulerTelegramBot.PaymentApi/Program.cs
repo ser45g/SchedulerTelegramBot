@@ -8,11 +8,8 @@ using SchedulerTelegramBot.Contracts.Payment;
 using SchedulerTelegramBot.PaymentApi;
 using SchedulerTelegramBot.PaymentApi.Mediatr.Requests;
 using SchedulerTelegramBot.PaymentApi.Options;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Web;
-using YoomoneyApi.Account;
-using YoomoneyApi.Operation;
+using System.Text.Json;
+using YooKassaNet.Webhooks;
 
 DotNetEnv.Env.Load(".env");
 
@@ -20,9 +17,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
-builder.Services.AddOptions<YoomoneyOptions>().BindConfiguration("YoomoneyOptions").ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<YooMoneyOptions>().BindConfiguration("YooMoneyOptions").ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<YooKassaOptions>().BindConfiguration("YooKassaOptions").ValidateDataAnnotations().ValidateOnStart();
 
 builder.Services.AddOpenApi();
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddMassTransit(configure =>
 {
@@ -48,11 +48,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
-app.MapPost("/payment-link", async Task<Results<Ok<GetPaymentLinkRequest>, BadRequest>> (BuySubscriptionRequest req, ISender sender, CancellationToken cancellationToken) =>
+app.MapPost("/payment-link", async Task<Results<Ok<GetPaymentLinkRequest>, BadRequest>> (BuySubscriptionRequest req, [FromQuery] string apiName, ISender sender, CancellationToken cancellationToken) =>
 {
-    var link = await sender.Send(new BuySubscriptionWithYoomoneyRequest(req.ChatId, req.Amount), cancellationToken);
+
+    IRequest<string?> request = apiName switch
+    {
+        "yoomoney" => new BuySubscriptionWithYoomoneyRequest(req.ChatId, req.Amount),
+        "yookassa" => new BuySubscriptionWithYookassaRequest(req.ChatId, req.Amount),
+        _ => new BuySubscriptionWithYookassaRequest(req.ChatId, req.Amount)
+    };
+
+    var link = await sender.Send(request, cancellationToken);
 
     if (link == null)
         return TypedResults.BadRequest();
@@ -81,6 +87,7 @@ app.MapPost("/success", async(
     [FromForm] string? billId = null,
     [FromForm] string? operationLabel = null) =>
 {
+    
     if(long.TryParse(label, out long chatId))
     {
         await publish.Publish(new PaymentSucceededEvent(chatId, amount, DateTime.UtcNow));
@@ -89,5 +96,35 @@ app.MapPost("/success", async(
     throw new Exception("Could not parse the sender");
 
 }).DisableAntiforgery();
+
+app.MapPost("/notification/yookassa", async (HttpContext httpContext, IPublishEndpoint publishEndpoint, CancellationToken cancellationToken=default) =>
+{
+    var streamReader = new StreamReader(httpContext.Request.Body);
+
+    var notificationString = await streamReader.ReadToEndAsync(cancellationToken);
+
+    var notification = YooKassaNotification.Parse(notificationString);
+
+    switch (notification.Event)
+    {
+        case WebhookEvent.PaymentSucceeded:
+            var paid = notification.AsPayment();
+
+            if(paid.Metadata != null)
+            {
+                var isChatIdPresent = paid.Metadata.TryGetValue("chat_id", out var chatIdString);
+
+                if (isChatIdPresent==true && long.TryParse(chatIdString, out long chatId))
+                {
+                    await publishEndpoint.Publish(new PaymentSucceededEvent(chatId, paid.Amount.Value, paid.CreatedAt.DateTime), cancellationToken);
+                }
+
+            }
+
+            break;
+    }
+    
+    return Results.Ok();
+});
 
 app.Run();
