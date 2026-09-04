@@ -28,7 +28,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
                 buttons.Add(new InlineKeyboardButton[] { InlineKeyboardButton.WithCallbackData($"{notification.Title} - {mark}", $"del-notif-{notification.Id}") });
             }
 
-            await Responce("Here is a list of notifications to delete. Click on one to delete it.", replyMarkup: buttons.ToArray());
+            await Responce("Here is a list of notifications to delete. Click on one to delete it.", replyMarkup: buttons.ToArray(), cancellationToken: cancellation);
 
             return Result.Ok();
         }

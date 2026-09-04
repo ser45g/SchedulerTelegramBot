@@ -11,30 +11,25 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
 {
     [CommandHandler]
     [CommandAllias("subscription_info")]
-    public class PremiumCommand : CommandHandler
+    public class PremiumCommand(SchedulerDbContext dbContext) : CommandHandler
     {
-        private readonly SchedulerDbContext _dbContext;
-
-        public PremiumCommand(SchedulerDbContext dbContext)
-        {
-            this._dbContext = dbContext;
-        }
-
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
             long chatId = container.ActualUpdate.Chat.Id;
 
-            var subscription = await _dbContext.Subscription.FirstOrDefaultAsync(x => x.ChatId == chatId, cancellation);
+            var subscription = await dbContext.Subscription.FirstOrDefaultAsync(x => x.ChatId == chatId, cancellation);
 
             if(subscription == null)
             {
-                await Responce("There's no subscription. If you want to use this command, consider buying a subscription");
+                await Responce("There's no subscription. If you want to use this command, consider buying a subscription", cancellationToken: cancellation);
+
                 return Result.Fault();
             }
 
             if (subscription.EndsAtUtc < DateTime.UtcNow)
             {
-                await Responce("Your subscription is expired. If you want to use this command, consider prolonging your subscription");
+                await Responce("Your subscription is expired. If you want to use this command, consider prolonging your subscription", cancellationToken: cancellation);
+
                 return Result.Fault();
             }
 

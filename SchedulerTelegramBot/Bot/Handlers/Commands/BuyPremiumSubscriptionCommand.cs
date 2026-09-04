@@ -12,15 +12,12 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
-            long chatId = container.ActualUpdate.Chat.Id;
-
             List<string> paymentApiNames = ["yoomoney", "yookassa"];
 
             var buttons = new List<InlineKeyboardButton[]> { };
 
             foreach (var apiName in paymentApiNames)
             {
-                
                 buttons.Add(new InlineKeyboardButton[] { InlineKeyboardButton.WithCallbackData($"{apiName}", $"buy-subscription-{apiName}") });
             }
 

@@ -32,10 +32,10 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
                 _infoStore.Set(chatId, storedData);
 
-                await container.Reply($"Okay, now enter the date when you want to be notified. For example, {DateTime.Now.AddHours(1.0)}", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
-
                 container.ForwardEnumState<InputUserState>();
-                
+
+                await container.Reply($"Okay, now enter the date when you want to be notified. For example, {DateTime.Now}", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+
                 return Result.Ok();
 
             }
@@ -46,8 +46,6 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
                 return Result.Fault();
 
             }
-
-
         }
     }
 

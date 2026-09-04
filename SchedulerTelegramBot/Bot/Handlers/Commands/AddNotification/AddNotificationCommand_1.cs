@@ -39,8 +39,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
                 var storedData = _infoStore.Get(chatId);
 
-                if (storedData == null)
-                    storedData = new InfoStore.StoreData();
+                storedData ??= new InfoStore.StoreData();
 
                 storedData.Title = title;
 
@@ -51,7 +50,6 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
                 container.ForwardEnumState<InputUserState>();
                 
                 return Result.Ok();
-
             }
             catch (Exception ex) 
             {

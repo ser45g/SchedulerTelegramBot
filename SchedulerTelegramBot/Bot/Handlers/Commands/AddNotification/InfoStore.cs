@@ -12,7 +12,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
             public DateTime? NotifyDate { get; set; }
         }
 
-        private ConcurrentDictionary<long, StoreData> _data;
+        private ConcurrentDictionary<long, StoreData> _data = new();
 
         public StoreData? Get(long id)
         {
@@ -21,11 +21,6 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
         public void Set(long id, StoreData data)
         {
             _data[id]= data;
-        }
-
-        public InfoStore() 
-        {
-            _data = new ConcurrentDictionary<long, StoreData>();
         }
     }
 }

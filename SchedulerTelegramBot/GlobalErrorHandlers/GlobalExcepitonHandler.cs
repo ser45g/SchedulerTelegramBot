@@ -23,7 +23,6 @@ namespace SchedulerTelegramBot.GlobalErrorHandlers
         {
             _logger.LogError(exception , "Error occurred in {Source}", source);
             
-            
         }
     }
 }

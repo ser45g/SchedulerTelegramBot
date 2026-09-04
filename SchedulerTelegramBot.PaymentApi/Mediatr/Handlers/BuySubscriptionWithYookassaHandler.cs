@@ -27,7 +27,7 @@ namespace SchedulerTelegramBot.PaymentApi.Mediatr.Handlers
                     Amount = Money.Rubles(request.Amount),
                     Capture = true,
                     Confirmation = Confirmation.Redirect("https://t.me/frantic_beaver_bot"),
-                    Description = "Покупка подписки на год",
+                    Description = "Buying the subscription for a year",
                     Metadata = new Dictionary<string, string>() { ["chat_id"] = request.ChatId.ToString() }
                 }, cancellationToken: cancellationToken);
 

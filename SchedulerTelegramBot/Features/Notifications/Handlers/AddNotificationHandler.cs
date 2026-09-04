@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using MassTransit;
+using MediatR;
 using Quartz;
+using SchedulerTelegramBot.Contracts;
 using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.Entities;
 using SchedulerTelegramBot.Features.Notifications.Requests;
@@ -9,10 +11,12 @@ using SchedulerTelegramBot.Mappers;
 
 namespace SchedulerTelegramBot.Features.Notifications.Handlers
 {
-    public class AddNotificationHandler(SchedulerDbContext context, ISchedulerFactory schedulerFactory): IRequestHandler<CreateNotificationRequest, NotificationResponseDto>
+    public class AddNotificationHandler(SchedulerDbContext context, ISendEndpointProvider sendEndpointProvider, ISchedulerFactory schedulerFactory): IRequestHandler<CreateNotificationRequest, NotificationResponseDto>
     {
         public async Task<NotificationResponseDto> Handle(CreateNotificationRequest request, CancellationToken cancellationToken)
         {
+            var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri("queue:send-response"));
+
             var notification = new Notification() {
                 Title = request.Title,
                 Description = request.Description,
@@ -23,7 +27,9 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
             };
     
             context.Notifications.Add(notification);
-    
+
+            await sendEndpoint.Send(new SendResponse(request.ChatId, "Notification was successfully added"), cancellationToken);
+
             await context.SaveChangesAsync(cancellationToken);
     
             IScheduler scheduler = await schedulerFactory.GetScheduler(cancellationToken);

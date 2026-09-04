@@ -48,9 +48,19 @@ public partial class Program
 
         tgBuilder.Services.AddMassTransit(configure =>
         {
+            configure.SetKebabCaseEndpointNameFormatter();
+
+            configure.AddEntityFrameworkOutbox<SchedulerDbContext>(options =>
+            {
+                options.UseSqlite();
+                options.UseBusOutbox();
+
+                options.QueryTimeout = TimeSpan.FromSeconds(10);
+            });
 
             configure.AddConsumer<PaymentSucceededConsumer>();
-
+            configure.AddConsumer<SendResponseConsumer>();
+            
             configure.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host("amqp://localhost:5672", h =>
