@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using MassTransit;
+using MediatR;
 using Quartz;
+using SchedulerTelegramBot.Contracts;
 using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.Features.Notifications.Requests;
 using SchedulerTelegramBot.Features.Notifications.Responses;
@@ -8,13 +10,15 @@ using SchedulerTelegramBot.Mappers;
 
 namespace SchedulerTelegramBot.Features.Notifications.Handlers
 {
-    public class UpdateNotificationHandler(SchedulerDbContext dbContext, ISchedulerFactory    schedulerFactory) :IRequestHandler<UpdateNotificationRequest, NotificationResponseDto>
+    public class UpdateNotificationHandler(SchedulerDbContext dbContext, ISchedulerFactory    schedulerFactory, ISendEndpointProvider sendEndpointProvider) :IRequestHandler<UpdateNotificationRequest, NotificationResponseDto>
     {
         public async Task<NotificationResponseDto> Handle(UpdateNotificationRequest request, CancellationToken cancellationToken)
         {
             var notification = await dbContext.Notifications.FindAsync([request.Id], cancellationToken);
 
-            if(notification == null)
+            var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri("queue:send-response"));
+
+            if (notification == null)
                 throw new Exception(nameof(notification));
 
             notification.Title = request.Title;
@@ -23,6 +27,8 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
             notification.ChatId = request.ChatId;
             notification.NotifyAtUtc = request.NotifyDateTime;
             notification.PeriodicNotificationPeriod = request.PeriodicNotificationPeriod;
+
+            await sendEndpoint.Send(new SendResponse(request.ChatId, $"The notification <{notification.Title}> was updated!"), cancellationToken);
 
             await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -14,7 +14,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 {
     [CallbackQueryHandler]
     [CallbackContainsData("del-notif")]
-    public class DeleteNotificationCallbackQueryHandler(ISender sender, ISendEndpointProvider sendEndpointProvider, SchedulerDbContext dbContext) : CallbackQueryHandler
+    public class DeleteNotificationCallbackQueryHandler(ISender sender) : CallbackQueryHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellationToken)
         {

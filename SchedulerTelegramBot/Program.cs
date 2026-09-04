@@ -36,6 +36,7 @@ public partial class Program
         tgBuilder.Services.AddDbContext<SchedulerDbContext>(options => options.UseSqlite(connectionString));
 
         tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification.InfoStore>();
+        tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification.InfoStore>();
 
         tgBuilder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
