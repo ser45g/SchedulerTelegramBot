@@ -20,7 +20,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
             await Responce("To add a notification, we'll need some information. What is the task name?", cancellationToken:cancellation, replyMarkup: new ReplyKeyboardRemove());
 
-            container.ForwardEnumState<InputUserState>();
+            container.ForwardEnumState<AddNotificationInputUserState>();
 
             return Result.Ok();
         }

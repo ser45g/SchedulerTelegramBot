@@ -11,12 +11,12 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 {
     [MessageHandler]
     [ChatType(ChatType.Private)]
-    [EnumState<InputUserState>(InputUserState.WaitingForTitle)]
+    [EnumState<AddNotificationInputUserState>(AddNotificationInputUserState.WaitingForTitle)]
     public class AddNotificationCommand_1 : MessageHandler
     {
-        private readonly InfoStore _infoStore;
+        private readonly AddNotificationInfoStore _infoStore;
 
-        public AddNotificationCommand_1(InfoStore infoStore)
+        public AddNotificationCommand_1(AddNotificationInfoStore infoStore)
         {
             _infoStore = infoStore;
         }
@@ -39,7 +39,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
                 var storedData = _infoStore.Get(chatId);
 
-                storedData ??= new InfoStore.StoreData();
+                storedData ??= new AddNotificationInfoStore.StoreData();
 
                 storedData.Title = title;
 
@@ -47,7 +47,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
                 _infoStore.Set(chatId, storedData);
 
-                container.ForwardEnumState<InputUserState>();
+                container.ForwardEnumState<AddNotificationInputUserState>();
                 
                 return Result.Ok();
             }

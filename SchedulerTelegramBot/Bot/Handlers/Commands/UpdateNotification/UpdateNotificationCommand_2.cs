@@ -12,8 +12,8 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
 {
     [MessageHandler]
     [ChatType(ChatType.Private)]
-    [EnumState<InputUserState>(InputUserState.WaitingForDescription)]
-    public class UpdateNotificationCommand_2(InfoStore infoStore) : MessageHandler
+    [EnumState<UpdateNotificationInputUserState>(UpdateNotificationInputUserState.WaitingForDescription)]
+    public class UpdateNotificationCommand_2(UpdateNotificationInfoStore infoStore) : MessageHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
@@ -33,7 +33,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
 
                 infoStore.Set(chatId, storedData);
 
-                container.ForwardEnumState<InputUserState>();
+                container.ForwardEnumState<UpdateNotificationInputUserState>();
 
                 await container.Reply($"Okay, now enter the date when you want to be notified. For example, {DateTime.Now}", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
 

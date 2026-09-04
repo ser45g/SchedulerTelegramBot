@@ -19,8 +19,8 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 {
     [MessageHandler]
     [ChatType(ChatType.Private)]
-    [EnumState<InputUserState>(InputUserState.WaitingForNotificationDate)]
-    public class AddNotificationCommand_3(InfoStore infoStore, ISender sender) : MessageHandler
+    [EnumState<AddNotificationInputUserState>(AddNotificationInputUserState.WaitingForNotificationDate)]
+    public class AddNotificationCommand_3(AddNotificationInfoStore infoStore, ISender sender) : MessageHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
@@ -47,7 +47,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
                 await sender.Send(new CreateNotificationRequest(storedData.Title, chatId, taskNotifyDate, storedData.Description, null));
 
-                container.DeleteEnumState<InputUserState>();
+                container.DeleteEnumState<AddNotificationInputUserState>();
 
                 return Result.Ok();
             }

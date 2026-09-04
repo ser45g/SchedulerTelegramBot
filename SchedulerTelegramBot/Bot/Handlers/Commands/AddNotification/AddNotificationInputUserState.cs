@@ -1,8 +1,8 @@
 ﻿using Telegrator.Annotations.StateKeeping;
 
-namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
+namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 {
-    public enum InputUserState
+    public enum AddNotificationInputUserState
     {
         Start = SpecialState.NoState,
         WaitingForTitle,

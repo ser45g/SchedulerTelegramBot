@@ -10,7 +10,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 {
     [CallbackQueryHandler]
     [CallbackContainsData("update-notif")]
-    public class UpdateNotificationCallbackQueryHandler(InfoStore infoStore) : CallbackQueryHandler
+    public class UpdateNotificationCallbackQueryHandler(UpdateNotificationInfoStore infoStore) : CallbackQueryHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellationToken)
         {
@@ -37,16 +37,15 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
             }
             try
             {
-
                 var storedData = infoStore.Get(chatId.Value);
 
-                storedData ??= new InfoStore.StoreData();
+                storedData ??= new UpdateNotificationInfoStore.StoreData();
 
                 storedData.Id = notificationId;
 
                 infoStore.Set(chatId.Value, storedData);
 
-                container.ForwardEnumState<InputUserState>();
+                container.ForwardEnumState<UpdateNotificationInputUserState>();
 
                 await container.Responce($"We're going to update {notificationId}. Enter title:");
 

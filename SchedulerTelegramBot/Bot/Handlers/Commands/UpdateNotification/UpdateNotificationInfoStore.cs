@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
 {
-    public class InfoStore
+    public class UpdateNotificationInfoStore
     {
         public class StoreData
         {
@@ -22,6 +22,11 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
         public void Set(long id, StoreData data)
         {
             _data[id]= data;
+        }
+
+        public void Remove(long id)
+        {
+            _data.TryRemove(id, out var _);
         }
     }
 }

@@ -13,8 +13,8 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
 {
     [MessageHandler]
     [ChatType(ChatType.Private)]
-    [EnumState<InputUserState>(InputUserState.WaitingForTitle)]
-    public class UpdateNotificationCommand_1(InfoStore infoStore) : MessageHandler
+    [EnumState<UpdateNotificationInputUserState>(UpdateNotificationInputUserState.WaitingForTitle)]
+    public class UpdateNotificationCommand_1(UpdateNotificationInfoStore infoStore) : MessageHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
@@ -33,7 +33,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
             {
                 var storedData = infoStore.Get(chatId);
 
-                storedData ??= new InfoStore.StoreData();
+                storedData ??= new UpdateNotificationInfoStore.StoreData();
 
                 storedData.Title = title;
 
@@ -41,7 +41,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
 
                 infoStore.Set(chatId, storedData);
 
-                container.ForwardEnumState<InputUserState>();
+                container.ForwardEnumState<UpdateNotificationInputUserState>();
 
                 return Result.Ok();
             }
