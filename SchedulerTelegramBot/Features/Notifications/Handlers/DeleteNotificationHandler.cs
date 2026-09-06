@@ -1,13 +1,9 @@
 ﻿using MassTransit;
-using MassTransit.Transports;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Quartz;
-using SchedulerTelegramBot.Contracts;
+using SchedulerTelegramBot.Contracts.Messaging.Commands;
 using SchedulerTelegramBot.Data;
-using SchedulerTelegramBot.Entities;
 using SchedulerTelegramBot.Features.Notifications.Requests;
-using Telegram.Bot.Types;
 
 namespace SchedulerTelegramBot.Features.Notifications.Handlers
 {

@@ -37,6 +37,7 @@ public partial class Program
 
         tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification.AddNotificationInfoStore>();
         tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification.UpdateNotificationInfoStore>();
+        tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.BuySubscription.BuySubscriptionInfoStore>();
 
         tgBuilder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 

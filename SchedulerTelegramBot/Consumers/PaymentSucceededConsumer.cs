@@ -1,7 +1,8 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SchedulerTelegramBot.Contracts;
+using SchedulerTelegramBot.Contracts.Constants;
+using SchedulerTelegramBot.Contracts.Messaging.Events;
 using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.Entities;
 using Telegram.Bot;
@@ -29,22 +30,25 @@ namespace SchedulerTelegramBot.Consumers
             var chatId = context.Message.ChatId;
             var amount = context.Message.Amount;
 
+            var timeSpan = context.Message.TimeSpan;
+            
             var subscription = await _dbContext.Subscription.FirstOrDefaultAsync(x => x.ChatId == chatId, context.CancellationToken);
 
             if(subscription != null)
             {
                 //need optimistic concurrency (or an atomic db update)
-                await _dbContext.Subscription.ExecuteUpdateAsync(setter => setter.SetProperty(x => x.EndsAtUtc, x => x.EndsAtUtc.AddMonths(12)), cancellationToken: context.CancellationToken);
+                subscription.EndsAtUtc = subscription.EndsAtUtc.Add(timeSpan);
+
+                _dbContext.Subscription.Update(subscription);
             }
             else
             {
-                _dbContext.Subscription.Add(new Subscription() { AddedAtUtc = DateTime.UtcNow, EndsAtUtc = DateTime.UtcNow.AddMonths(12), ChatId = chatId });
+                _dbContext.Subscription.Add(new Subscription() { AddedAtUtc = DateTime.UtcNow, EndsAtUtc = DateTime.UtcNow.Add(timeSpan), ChatId = chatId });
 
-                await _dbContext.SaveChangesAsync(context.CancellationToken);
             }
+            await _dbContext.SaveChangesAsync(context.CancellationToken);
 
-
-            await _botClient.SendMessage(chatId: chatId,text: $"✅ Payment of {amount} RUB has been accepted!!!\nThank you for your purchase!",cancellationToken: context.CancellationToken);
+            await _botClient.SendMessage(chatId: chatId, text: $"✅ Payment of {amount} RUB has been accepted!!!\nThank you for your purchase!",cancellationToken: context.CancellationToken);
            
         }
     }

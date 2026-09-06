@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using SchedulerTelegramBot.Contracts;
+using SchedulerTelegramBot.Contracts.Messaging.Commands;
 using Telegram.Bot;
 
 namespace SchedulerTelegramBot.Consumers

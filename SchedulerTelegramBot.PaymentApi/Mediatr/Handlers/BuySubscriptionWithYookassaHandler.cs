@@ -21,6 +21,9 @@ namespace SchedulerTelegramBot.PaymentApi.Mediatr.Handlers
                     SecretKey = options.Value.SecretKey,
                 });
 
+                if (request.CurrencyCode != "RUB")
+                    throw new Exception("Only rubles are supported");
+
                 // Создаем одностадийный платеж и отправляем покупателя на страницу подтверждения.
                 var payment = await payments.CreatePaymentAsync(new CreatePaymentRequest
                 {
@@ -28,7 +31,10 @@ namespace SchedulerTelegramBot.PaymentApi.Mediatr.Handlers
                     Capture = true,
                     Confirmation = Confirmation.Redirect("https://t.me/frantic_beaver_bot"),
                     Description = "Buying the subscription for a year",
-                    Metadata = new Dictionary<string, string>() { ["chat_id"] = request.ChatId.ToString() }
+                    Metadata = new Dictionary<string, string>() { 
+                        ["chat_id"] = request.ChatId.ToString(),
+                        ["time_span"] = request.TimeSpan.ToString(),
+                    }
                 }, cancellationToken: cancellationToken);
 
                 return payment.Confirmation?.ConfirmationUrl;

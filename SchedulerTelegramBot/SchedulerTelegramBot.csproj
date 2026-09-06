@@ -10,8 +10,11 @@
 
   <ItemGroup>
     <Compile Remove="Bot\Handlers\InlineQueryHandlers\**" />
+    <Compile Remove="Extensions\**" />
     <EmbeddedResource Remove="Bot\Handlers\InlineQueryHandlers\**" />
+    <EmbeddedResource Remove="Extensions\**" />
     <None Remove="Bot\Handlers\InlineQueryHandlers\**" />
+    <None Remove="Extensions\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,10 +43,6 @@
 		<PackageReference Include="Telegrator" Version="1.15.9" />
 		<PackageReference Include="Telegrator.Hosting" Version="1.15.9" />
 		<PackageReference Include="Telegrator.Hosting.Web" Version="1.15.9" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Extensions\" />
 	</ItemGroup>
 
 	<ItemGroup>

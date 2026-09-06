@@ -33,7 +33,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
             {
                 var storedData = infoStore.Get(chatId);
 
-                storedData ??= new UpdateNotificationInfoStore.StoreData();
+                ArgumentNullException.ThrowIfNull(storedData, nameof(storedData));
 
                 storedData.Title = title;
 

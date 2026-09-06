@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using SchedulerTelegramBot.PaymentApi.Mediatr.Requests;
 using SchedulerTelegramBot.PaymentApi.Options;
-using YoomoneyApi.Account;
 using YoomoneyApi.Quickpay;
 
 namespace SchedulerTelegramBot.PaymentApi.Mediatr.Handlers
@@ -11,10 +10,15 @@ namespace SchedulerTelegramBot.PaymentApi.Mediatr.Handlers
     {
         public async Task<string?> Handle(BuySubscriptionWithYoomoneyRequest request, CancellationToken cancellationToken)
         {
+
             try
             {
-                //Payment method. Possible values: PC - payment from the YuMoney wallet; AC - from a bank card.
-                var quickpay = new Quickpay(receiver: options.Value.Reciever, quickpayForm: "shop", sum: request.Amount, label: request.ChatId.ToString(), email: options.Value.Email, paymentType: "AC", firstname: "Sergey", lastname: "Alexashin", sender: request.ChatId.ToString()); 
+                if(request.CurrencyCode != "RUB")
+                {
+                    throw new Exception("Only rubles are supported");
+                }
+
+                var quickpay = new Quickpay(receiver: options.Value.Reciever, quickpayForm: "shop", sum: request.Amount, label: $"({request.ChatId})({request.TimeSpan})", email: options.Value.Email, paymentType: "AC", firstname: "Sergey", lastname: "Alexashin", sender: request.ChatId.ToString()); 
 
                 return quickpay.LinkPayment;
 

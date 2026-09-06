@@ -3,12 +3,12 @@ using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Scalar.AspNetCore;
-using SchedulerTelegramBot.Contracts;
-using SchedulerTelegramBot.Contracts.Payment;
-using SchedulerTelegramBot.PaymentApi;
+using SchedulerTelegramBot.Contracts.Http.Requests.Payment;
+using SchedulerTelegramBot.Contracts.Http.Responses.Payment;
+using SchedulerTelegramBot.Contracts.Messaging.Events;
 using SchedulerTelegramBot.PaymentApi.Mediatr.Requests;
 using SchedulerTelegramBot.PaymentApi.Options;
-using System.Text.Json;
+using System.Text.RegularExpressions;
 using YooKassaNet.Webhooks;
 
 DotNetEnv.Env.Load(".env");
@@ -48,14 +48,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/payment-link", async Task<Results<Ok<GetPaymentLinkRequest>, BadRequest>> (BuySubscriptionRequest req, [FromQuery] string apiName, ISender sender, CancellationToken cancellationToken) =>
+app.MapPost("/payment-link", async Task<Results<Ok<PaymentLinkResponse>, BadRequest>> (BuySubscriptionRequest req, [FromQuery] string apiName, ISender sender, CancellationToken cancellationToken) =>
 {
-
     IRequest<string?> request = apiName switch
     {
-        "yoomoney" => new BuySubscriptionWithYoomoneyRequest(req.ChatId, req.Amount),
-        "yookassa" => new BuySubscriptionWithYookassaRequest(req.ChatId, req.Amount),
-        _ => new BuySubscriptionWithYookassaRequest(req.ChatId, req.Amount)
+        "yoomoney" => new BuySubscriptionWithYoomoneyRequest(req.ChatId, req.Amount, req.CurrencyCode, req.TimeSpan),
+        "yookassa" => new BuySubscriptionWithYookassaRequest(req.ChatId, req.Amount, req.CurrencyCode, req.TimeSpan),
+        _ => new BuySubscriptionWithYookassaRequest(req.ChatId, req.Amount, req.CurrencyCode, req.TimeSpan)
     };
 
     var link = await sender.Send(request, cancellationToken);
@@ -63,15 +62,15 @@ app.MapPost("/payment-link", async Task<Results<Ok<GetPaymentLinkRequest>, BadRe
     if (link == null)
         return TypedResults.BadRequest();
 
-    return TypedResults.Ok(new GetPaymentLinkRequest(link));
+    return TypedResults.Ok(new PaymentLinkResponse(link));
 });
 
-app.MapPost("/success", async( 
+app.MapPost("/notification/yoomoney", async( 
     IPublishEndpoint publish,
     HttpContext context,
     CancellationToken cancellationToken,
     [FromForm] decimal amount,
-    [FromForm] int currency,
+    [FromForm] long currency,
     [FromForm] DateTime dateTime,
     [FromForm] string sign,
     [FromForm] string? operationId=null,
@@ -87,15 +86,29 @@ app.MapPost("/success", async(
     [FromForm] string? billId = null,
     [FromForm] string? operationLabel = null) =>
 {
-    
-    if(long.TryParse(label, out long chatId))
-    {
-        await publish.Publish(new PaymentSucceededEvent(chatId, amount, DateTime.UtcNow));
-        return;
-    }
-    throw new Exception("Could not parse the sender");
 
+    var pattern = @"\(([^)]+)\)\(([^)]+)\)";
+
+    if (string.IsNullOrWhiteSpace(label))
+        throw new ArgumentNullException(nameof(label));
+
+    var match = Regex.Match(label, pattern);
+
+    if (!match.Success)
+        throw new FormatException("Input string is not in the expected format");
+
+    long chatId = long.Parse(match.Groups[1].Value);
+
+    TimeSpan timeSpan = TimeSpan.Parse(match.Groups[2].Value);
+
+    await publish.Publish(new PaymentSucceededEvent(chatId, timeSpan, amount, "RUB", DateTime.UtcNow));
+       
 }).DisableAntiforgery();
+
+app.MapPost("/success", () =>
+{
+    return Results.Ok();
+});
 
 app.MapPost("/notification/yookassa", async (HttpContext httpContext, IPublishEndpoint publishEndpoint, CancellationToken cancellationToken=default) =>
 {
@@ -113,12 +126,12 @@ app.MapPost("/notification/yookassa", async (HttpContext httpContext, IPublishEn
             if(paid.Metadata != null)
             {
                 var isChatIdPresent = paid.Metadata.TryGetValue("chat_id", out var chatIdString);
+                var isTimeSpanPresent = paid.Metadata.TryGetValue("time_span", out var timeSpanString);
 
-                if (isChatIdPresent==true && long.TryParse(chatIdString, out long chatId))
+                if (isChatIdPresent==true && isTimeSpanPresent && long.TryParse(chatIdString, out long chatId) && TimeSpan.TryParse(timeSpanString, out var timeSpan))
                 {
-                    await publishEndpoint.Publish(new PaymentSucceededEvent(chatId, paid.Amount.Value, paid.CreatedAt.DateTime), cancellationToken);
+                    await publishEndpoint.Publish(new PaymentSucceededEvent(chatId, timeSpan, paid.Amount.Value, paid.Amount.Currency.ToString(), paid.CreatedAt.DateTime), cancellationToken);
                 }
-
             }
 
             break;

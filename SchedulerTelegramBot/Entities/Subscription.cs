@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace SchedulerTelegramBot.Entities
+﻿namespace SchedulerTelegramBot.Entities
 {
     public class Subscription
     {

@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using MediatR;
 using Quartz;
-using SchedulerTelegramBot.Contracts;
+using SchedulerTelegramBot.Contracts.Messaging.Commands;
 using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.Features.Notifications.Requests;
 using SchedulerTelegramBot.Features.Notifications.Responses;
