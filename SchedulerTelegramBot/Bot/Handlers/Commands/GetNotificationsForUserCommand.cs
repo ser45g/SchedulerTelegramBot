@@ -33,8 +33,14 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
 
                 buttons.Add(new InlineKeyboardButton[] { InlineKeyboardButton.WithCallbackData($"{notification.Title} - {mark}", $"get-notif-{notification.Id}") });
             }
-
-            await Responce("Here is a list of all your notificaions:", replyMarkup: new InlineKeyboardMarkup(buttons.ToArray()), cancellationToken:cancellationToken);
+            if (buttons.Count > 0) {
+            
+                await Responce("Here is a list of all your notificaions:", replyMarkup: new InlineKeyboardMarkup(buttons.ToArray()), cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await Responce("No notifications exist at this point. Go to /add_notification to add one", replyMarkup: new ReplyKeyboardRemove(), cancellationToken: cancellationToken);
+            }
 
             return Result.Ok();
         }

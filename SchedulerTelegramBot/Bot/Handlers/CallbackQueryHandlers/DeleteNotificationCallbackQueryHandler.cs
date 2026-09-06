@@ -13,7 +13,7 @@ using Telegrator.Handlers;
 namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 {
     [CallbackQueryHandler]
-    [CallbackContainsData("del-notif")]
+    [CallbackStartsWithData("del-notif")]
     public class DeleteNotificationCallbackQueryHandler(ISender sender) : CallbackQueryHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellationToken)
@@ -24,11 +24,9 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 
             Guid? notificationId = null;
 
-            if (callbackData != null && callbackData.StartsWith("del-notif-"))
+            if (callbackData != null)
             {
-                var notificationIdString = callbackData.Replace("del-notif-", "");
-
-                if (Guid.TryParse(notificationIdString, out var id))
+                if (Guid.TryParse(callbackData.Replace("del-notif-", ""), out var id))
                 {
                     notificationId = id;
                 }
@@ -37,12 +35,21 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
             if (notificationId == null || chatId == null) 
             {
                 await Responce("Something went wrong. Try again", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+
                 return Result.Fault();
             }
+            try
+            {
+                await sender.Send(new DeleteNotificationRequest(notificationId.Value, chatId.Value), cancellationToken);
 
-            await sender.Send(new DeleteNotificationRequest(notificationId.Value, chatId.Value), cancellationToken);
+                return Result.Ok();
+            }
+            catch (Exception ex) 
+            {
+                await Responce("Could not delete the notification", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
 
-            return Result.Ok();
+                return Result.Fault();
+            }
         }
     }
 }

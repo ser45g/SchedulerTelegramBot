@@ -6,7 +6,6 @@ using Telegrator.StateKeeping;
 
 namespace SchedulerTelegramBot.Bot.Aspects
 {
-
     public class CleanUpAddNotificationInputUserStatePreProcessor : IPreProcessor
     {
         public Task<Result> BeforeExecution(IHandlerContainer container, CancellationToken cancellationToken = default)

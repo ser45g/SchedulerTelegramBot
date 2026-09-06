@@ -20,7 +20,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
         {
             _infoStore = infoStore;
         }
-        public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
+        public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellationToken)
         {
             var message = container.ActualUpdate;
 
@@ -28,7 +28,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
             if (string.IsNullOrWhiteSpace(title))
             {
-                await Reply("Title was invalid. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+                await Reply("Title was invalid. Try again", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
 
                 return Result.Fault();
             }
@@ -43,7 +43,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
 
                 storedData.Title = title;
 
-                await container.Reply($"Please enter the description (optional):", replyMarkup: new[] { "<Skip>" }, cancellationToken: cancellation);
+                await container.Reply($"Please enter the description (optional):", replyMarkup: new[] { "<Skip>" }, cancellationToken: cancellationToken);
 
                 _infoStore.Set(chatId, storedData);
 
@@ -53,7 +53,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification
             }
             catch (Exception ex) 
             {
-                await Reply("Could not process the message. Please try again later", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+                await Reply("Could not process the message. Please try again later", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
 
                 return Result.Fault();
             }

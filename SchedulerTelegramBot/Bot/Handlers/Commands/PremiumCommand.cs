@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using SchedulerTelegramBot.Data;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -11,13 +12,13 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
 {
     [CommandHandler]
     [CommandAllias("subscription_info")]
-    public class PremiumCommand(SchedulerDbContext dbContext) : CommandHandler
+    public class PremiumCommand(ISender sender) : CommandHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
             long chatId = container.ActualUpdate.Chat.Id;
 
-            var subscription = await dbContext.Subscription.FirstOrDefaultAsync(x => x.ChatId == chatId, cancellation);
+            var subscription = await sender.Send(new GetUserSubscriptionRequest(chatId), cancellation);
 
             if(subscription == null)
             {
@@ -33,7 +34,7 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
                 return Result.Fault();
             }
 
-            await Responce($"Your subscription ends at: {subscription.EndsAtUtc}", parseMode: ParseMode.Html, replyMarkup: new ReplyKeyboardRemove(), cancellationToken: cancellation);
+            await Responce($"You have {(subscription.EndsAtUtc - DateTime.UtcNow).Days} more days before your subscription expires", parseMode: ParseMode.Html, replyMarkup: new ReplyKeyboardRemove(), cancellationToken: cancellation);
 
             return Result.Ok();
         }

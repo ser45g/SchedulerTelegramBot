@@ -1,11 +1,5 @@
-﻿using MassTransit;
-using MediatR;
-using Quartz;
-using SchedulerTelegramBot.Contracts;
-using SchedulerTelegramBot.Data;
-using SchedulerTelegramBot.Entities;
+﻿using MediatR;
 using SchedulerTelegramBot.Features.Notifications.Requests;
-using SchedulerTelegramBot.Jobs;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;

@@ -9,7 +9,7 @@ using Telegrator.StateKeeping;
 namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 {
     [CallbackQueryHandler]
-    [CallbackContainsData("update-notif")]
+    [CallbackStartsWithData("update-notif")]
     public class UpdateNotificationCallbackQueryHandler(UpdateNotificationInfoStore infoStore) : CallbackQueryHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellationToken)
@@ -20,11 +20,9 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 
             Guid? notificationId = null;
 
-            if (callbackData != null && callbackData.StartsWith("update-notif-"))
+            if (callbackData != null)
             {
-                var notificationIdString = callbackData.Replace("update-notif-", "");
-
-                if (Guid.TryParse(notificationIdString, out var id))
+                if (Guid.TryParse(callbackData.Replace("update-notif-", ""), out var id))
                 {
                     notificationId = id;
                 }
@@ -32,7 +30,8 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 
             if (notificationId == null || chatId == null)
             {
-                await Responce("Something went wrong. Try again", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+                await Responce("Something went wrong. Try again later", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+
                 return Result.Fault();
             }
             try
@@ -47,17 +46,16 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 
                 container.ForwardEnumState<UpdateNotificationInputUserState>();
 
-                await container.Responce($"We're going to update {notificationId}. Enter title:");
+                await container.Responce($"We're going to update {notificationId}. Enter title:", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
 
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                await container.Responce($"Could not process the message");
+                await container.Responce($"Could not process the message", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
 
                 return Result.Fault();
             }
-
         }
     }
 }

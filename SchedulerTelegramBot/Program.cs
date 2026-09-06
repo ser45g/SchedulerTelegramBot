@@ -48,22 +48,34 @@ public partial class Program
             options.WaitForJobsToComplete = true;
         });
 
-        tgBuilder.Services.AddMassTransit(configure =>
+        tgBuilder.Services.AddMassTransit(x =>
         {
-            configure.SetKebabCaseEndpointNameFormatter();
+            x.SetKebabCaseEndpointNameFormatter();
 
-            configure.AddEntityFrameworkOutbox<SchedulerDbContext>(options =>
+            x.AddEntityFrameworkOutbox<SchedulerDbContext>(options =>
             {
                 options.UseSqlite();
                 options.UseBusOutbox();
 
-                options.QueryTimeout = TimeSpan.FromSeconds(10);
+                options.QueryTimeout = TimeSpan.FromSeconds(3);
+                options.QueryDelay = TimeSpan.FromSeconds(3);
             });
 
-            configure.AddConsumer<PaymentSucceededConsumer>();
-            configure.AddConsumer<SendResponseConsumer>();
+
+            x.AddRabbitMqConfigureEndpointsCallback((context, name, cfg) =>
+            {
+                cfg.UseQueueBasedDelayedRedelivery(r => r.Intervals(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(30)));
+                cfg.UseEntityFrameworkOutbox<SchedulerDbContext>(context, options =>
+                {
+                    options.ConcurrentDeliveryLimit = 10;
+                });
+                cfg.UseMessageRetry(r => r.Immediate(3).Incremental(3, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(200)));
+            });
+
+            x.AddConsumer<PaymentSucceededConsumer>();
+            x.AddConsumer<SendResponseConsumer>();
             
-            configure.UsingRabbitMq((context, cfg) =>
+            x.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host("amqp://localhost:5672", h =>
                 {

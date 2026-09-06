@@ -13,7 +13,7 @@ using Telegrator.StateKeeping;
 namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 {
     [CallbackQueryHandler]
-    [CallbackContainsData("buy-subscription")]
+    [CallbackStartsWithData("buy-subscription")]
     public class BuySubscriptionCallbackQueryHandler(IHttpClientFactory httpClientFactory, BuySubscriptionInfoStore infoStore) : CallbackQueryHandler
     {
         public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellationToken)
@@ -29,32 +29,39 @@ namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
                 return Result.Fault();
             }
 
-            var storedData = infoStore.Get(chatId.Value);
-
-            ArgumentNullException.ThrowIfNull(storedData, nameof(storedData));
-            ArgumentNullException.ThrowIfNull(storedData.SubscriptionType, nameof(storedData));
-
-            if(!SubscriptionPricesConstants.SubscriptionPaymentTypes.TryGetValue(storedData.SubscriptionType, out var subscriptionPayment))
+            try
             {
-                await container.Responce("Could not process the request. Please, try again later.", cancellationToken: cancellationToken);
+                var storedData = infoStore.Get(chatId.Value);
+
+                ArgumentNullException.ThrowIfNull(storedData, nameof(storedData));
+                ArgumentNullException.ThrowIfNull(storedData.SubscriptionType, nameof(storedData));
+
+                if (!SubscriptionPricesConstants.SubscriptionPaymentTypes.TryGetValue(storedData.SubscriptionType, out var subscriptionPayment))
+                {
+                    throw new Exception("Couldn't get subscription type");
+                }
+
+                var link = await GetPaymentLink(chatId.Value, subscriptionPayment.Payment, subscriptionPayment.Currency, subscriptionPayment.TimeSpan, paymentApi, cancellationToken);
+
+                if (link == null)
+                {
+                    await container.Responce("Could not recieve a payment link. Please, try again later.", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+
+                    return Result.Fault();
+                }
+
+                await container.Responce($"Buy subscription ({subscriptionPayment.Name}) for {subscriptionPayment.Payment}{subscriptionPayment.Currency} for the current user using ({paymentApi})", replyMarkup: new InlineKeyboardButton("Follow", link), cancellationToken: cancellationToken);
+
+                container.DeleteEnumState<BuySubscriptionInputUserState>();
+
+                return Result.Ok();
+            }
+            catch (Exception ex) 
+            {
+                await container.Responce("Could not process the request. Please, try again later.", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
 
                 return Result.Fault();
             }
-
-            var link = await GetPaymentLink(chatId.Value, subscriptionPayment.Payment, subscriptionPayment.Currency, subscriptionPayment.TimeSpan, paymentApi, cancellationToken);
-
-            if (link == null)
-            {
-                await container.Responce("Could not recieve a payment link. Please, try again later.", cancellationToken: cancellationToken);
-
-                return Result.Fault();
-            }
-
-            await container.Responce($"Buy subscription ({subscriptionPayment.Name}) for {subscriptionPayment.Payment}{subscriptionPayment.Currency} for the current user using ({paymentApi})", replyMarkup: new InlineKeyboardButton("Follow", link), cancellationToken: cancellationToken);
-
-            container.DeleteEnumState<BuySubscriptionInputUserState>();
-
-            return Result.Ok();
         }
 
         private async Task<string?> GetPaymentLink(long chatId, decimal amount, string currency, TimeSpan timeSpan, string apiName, CancellationToken cancellation=default)
