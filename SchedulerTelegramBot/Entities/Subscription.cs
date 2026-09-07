@@ -1,4 +1,6 @@
-﻿namespace SchedulerTelegramBot.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SchedulerTelegramBot.Entities
 {
     public class Subscription
     {
@@ -12,5 +14,7 @@
 
         public DateTime? LastUpdatedAtUtc { get; set; }
 
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

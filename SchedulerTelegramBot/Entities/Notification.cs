@@ -1,4 +1,6 @@
-﻿namespace SchedulerTelegramBot.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SchedulerTelegramBot.Entities
 {
     public class Notification
     {
@@ -17,5 +19,8 @@
         public DateTime? LastUpdatedAtUtc { get; set; }
 
         public TimeSpan? PeriodicNotificationPeriod { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

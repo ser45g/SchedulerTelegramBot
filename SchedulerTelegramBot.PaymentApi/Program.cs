@@ -131,13 +131,15 @@ app.MapPost("/notification/yookassa", async (HttpContext httpContext, IPublishEn
                 if (isChatIdPresent==true && isTimeSpanPresent && long.TryParse(chatIdString, out long chatId) && TimeSpan.TryParse(timeSpanString, out var timeSpan))
                 {
                     await publishEndpoint.Publish(new PaymentSucceededEvent(chatId, timeSpan, paid.Amount.Value, paid.Amount.Currency.ToString(), paid.CreatedAt.DateTime), cancellationToken);
+                    
+                    return Results.Ok();
                 }
             }
 
             break;
     }
-    
-    return Results.Ok();
+
+    return Results.BadRequest();
 });
 
 app.Run();

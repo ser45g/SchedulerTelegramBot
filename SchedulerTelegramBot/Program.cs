@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using Dorssel.EntityFrameworkCore;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,7 @@ public partial class Program
             throw new ArgumentNullException(nameof(connectionString));
         }
 
-        tgBuilder.Services.AddDbContext<SchedulerDbContext>(options => options.UseSqlite(connectionString));
+        tgBuilder.Services.AddDbContext<SchedulerDbContext>(options => options.UseSqlite(connectionString).UseSqliteTimestamp());
 
         tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.AddNotification.AddNotificationInfoStore>();
         tgBuilder.Services.AddSingleton<SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification.UpdateNotificationInfoStore>();
