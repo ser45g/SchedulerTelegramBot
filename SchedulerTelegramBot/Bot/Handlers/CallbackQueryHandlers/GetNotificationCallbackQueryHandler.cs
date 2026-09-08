@@ -1,8 +1,11 @@
 ﻿using MediatR;
 using SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers.Attributes;
+using SchedulerTelegramBot.Entities;
 using SchedulerTelegramBot.Features.Notifications.Requests;
+using SchedulerTelegramBot.Features.Notifications.Responses;
 using System.Text;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegrator;
 using Telegrator.Handlers;
@@ -10,46 +13,70 @@ using Telegrator.Handlers;
 namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 {
     [CallbackQueryHandler]
-    [CallbackContainsData("get-notif")]
+    [CallbackStartsWithData("get-notif")]
     public class GetNotificationCallbackQueryHandler(ISender sender) : CallbackQueryHandler
     {
-        public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellation)
+        public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellationToken)
         {
             var callbackData = container.HandlingUpdate?.CallbackQuery?.Data;
 
-            if (callbackData != null && callbackData.StartsWith("get-notif-"))
+            long? chatId = container.HandlingUpdate?.GetChatId();
+
+            Guid? notificationId = null;
+
+            if (callbackData != null)
             {
-                var notificationIdString = callbackData.Replace("get-notif-", "");
-                if (Guid.TryParse(notificationIdString, out var notificationId))
+                if (Guid.TryParse(callbackData.Replace("get-notif-", ""), out var id))
                 {
-                    var notification = await sender.Send(new GetNotificationByIdRequest(notificationId));
-
-                    if (notification == null)
-                        throw new Exception();
-
-                    StringBuilder stringBuilder = new StringBuilder();
-
-                    stringBuilder.AppendLine($"Title: {notification.Title}");
-
-                    if (notification.Description != null)
-                    {
-                        stringBuilder.AppendLine($"Description: {notification.Description}");
-                    }
-
-                    stringBuilder.AppendLine($"Notification Date: {notification.NotifyDateTime.ToLongDateString()} {notification.NotifyDateTime.ToLongTimeString()}");
-
-                    stringBuilder.AppendLine($"Added: {notification.AddedDateTime}");
-
-                    await Responce(stringBuilder.ToString(), cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
-                }
-                else
-                {
-                    await container.Responce("Something went wrong. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+                    notificationId = id;
                 }
             }
+
+            if (notificationId == null || chatId == null)
+            {
+                await Responce("Something went wrong. Try again", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+
+                return Result.Fault();
+            }
+
+            var notificationDto = await sender.Send(new GetNotificationByIdRequest(notificationId.Value), cancellationToken);
+
+            if (notificationDto == null)
+            {
+                await container.Responce("Could not find the notification", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+
+                return Result.Fault();
+            }
+
+            var notificationCard = NotificationCardHtmlText(notificationDto);
+
+            await container.Responce(notificationCard, cancellationToken: cancellationToken,parseMode: ParseMode.Html, replyMarkup: new ReplyKeyboardRemove());
 
             return Result.Ok();
         }
 
+        private string NotificationCardHtmlText(NotificationResponseDto notification)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine($"<b>Title:</b> {notification.Title}");
+
+            if (notification.Description != null)
+            {
+                stringBuilder.AppendLine();
+
+                stringBuilder.AppendLine($"<b>Description:</b> {notification.Description}");
+            }
+
+            stringBuilder.AppendLine();
+
+            stringBuilder.AppendLine($"<b>Notification Date:</b> {notification.NotifyDateTime.ToLongDateString()} {notification.NotifyDateTime.ToLongTimeString()}");
+
+            stringBuilder.AppendLine();
+
+            stringBuilder.AppendLine($"<b>Added:</b> {notification.AddedDateTime}");
+
+            return stringBuilder.ToString();
+        }
     }
 }

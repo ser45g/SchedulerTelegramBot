@@ -2,7 +2,7 @@
 
 namespace SchedulerTelegramBot.PaymentApi.Options
 {
-    public class YoomoneyOptions
+    public class YooMoneyOptions
     {
         [Required]
         public required string AccessToken { get; init; }

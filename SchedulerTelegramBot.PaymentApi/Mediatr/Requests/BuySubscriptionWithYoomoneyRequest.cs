@@ -2,5 +2,5 @@
 
 namespace SchedulerTelegramBot.PaymentApi.Mediatr.Requests
 {
-    public record class BuySubscriptionWithYoomoneyRequest(decimal Amount) : IRequest<string?>;
+    public record class BuySubscriptionWithYoomoneyRequest(long ChatId, decimal Amount, string CurrencyCode, TimeSpan TimeSpan) : IRequest<string?>;
 }

@@ -1,6 +1,8 @@
-﻿using MediatR;
+﻿using MassTransit;
+using MediatR;
 using SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers.Attributes;
-using SchedulerTelegramBot.Features.Notifications.Handlers;
+using SchedulerTelegramBot.Contracts;
+using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.Features.Notifications.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -11,28 +13,43 @@ using Telegrator.Handlers;
 namespace SchedulerTelegramBot.Bot.Handlers.CallbackQueryHandlers
 {
     [CallbackQueryHandler]
-    [CallbackContainsData("del-notif")]
+    [CallbackStartsWithData("del-notif")]
     public class DeleteNotificationCallbackQueryHandler(ISender sender) : CallbackQueryHandler
     {
-        public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellation)
+        public override async Task<Result> Execute(IAbstractHandlerContainer<CallbackQuery> container, CancellationToken cancellationToken)
         {
             var callbackData = container.HandlingUpdate?.CallbackQuery?.Data;
-            if (callbackData != null && callbackData.StartsWith("del-notif-"))
-            {
-                var notificationIdString = callbackData.Replace("del-notif-", "");
-                if (Guid.TryParse(notificationIdString, out var notificationId))
-                {
-                    await sender.Send(new DeleteNotificationRequest(notificationId), cancellation);
 
-                    await Responce($"Event was successfuly deleted!", cancellationToken: cancellation);
-                }
-                else
+            long? chatId = container.HandlingUpdate?.GetChatId();
+
+            Guid? notificationId = null;
+
+            if (callbackData != null)
+            {
+                if (Guid.TryParse(callbackData.Replace("del-notif-", ""), out var id))
                 {
-                    await Responce("Something went wrong. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
+                    notificationId = id;
                 }
             }
 
-            return Result.Ok();
+            if (notificationId == null || chatId == null) 
+            {
+                await Responce("Something went wrong. Try again", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+
+                return Result.Fault();
+            }
+            try
+            {
+                await sender.Send(new DeleteNotificationRequest(notificationId.Value, chatId.Value), cancellationToken);
+
+                return Result.Ok();
+            }
+            catch (Exception ex) 
+            {
+                await Responce("Could not delete the notification", cancellationToken: cancellationToken, replyMarkup: new ReplyKeyboardRemove());
+
+                return Result.Fault();
+            }
         }
     }
 }

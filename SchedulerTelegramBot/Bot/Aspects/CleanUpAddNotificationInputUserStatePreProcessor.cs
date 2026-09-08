@@ -6,17 +6,16 @@ using Telegrator.StateKeeping;
 
 namespace SchedulerTelegramBot.Bot.Aspects
 {
-
     public class CleanUpAddNotificationInputUserStatePreProcessor : IPreProcessor
     {
         public Task<Result> BeforeExecution(IHandlerContainer container, CancellationToken cancellationToken = default)
         {
 
-            var hasState = container.EnumStateKeeper<AddNotificationCommandInputUserState>().HasState(container.HandlingUpdate);
+            var hasState = container.EnumStateKeeper<AddNotificationInputUserState>().HasState(container.HandlingUpdate);
 
-            if (hasState && (container.EnumStateKeeper<AddNotificationCommandInputUserState>().GetState(container.HandlingUpdate) != AddNotificationCommandInputUserState.Start))
+            if (hasState && (container.EnumStateKeeper<AddNotificationInputUserState>().GetState(container.HandlingUpdate) != AddNotificationInputUserState.Start))
             {
-                container.DeleteEnumState<AddNotificationCommandInputUserState>();
+                container.DeleteEnumState<AddNotificationInputUserState>();
             }
 
             return Task.FromResult(Result.Ok());

@@ -1,45 +1,40 @@
-﻿using MediatR;
-using Quartz;
+﻿using MassTransit;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using SchedulerTelegramBot.Contracts.Messaging.Commands;
 using SchedulerTelegramBot.Data;
 using SchedulerTelegramBot.Entities;
 using SchedulerTelegramBot.Features.Notifications.Requests;
 using SchedulerTelegramBot.Features.Notifications.Responses;
-using SchedulerTelegramBot.Jobs;
 using SchedulerTelegramBot.Mappers;
 
 namespace SchedulerTelegramBot.Features.Notifications.Handlers
 {
-    public class AddNotificationHandler(SchedulerDbContext context, ISchedulerFactory schedulerFactory): IRequestHandler<CreateNotificationRequest, NotificationResponseDto>
+    public class AddNotificationHandler(SchedulerDbContext dbContext, ISendEndpointProvider sendEndpointProvider, IMessageScheduler scheduler, ILogger<AddNotificationHandler> logger): IRequestHandler<CreateNotificationRequest, NotificationResponseDto?>
     {
-        public async Task<NotificationResponseDto> Handle(CreateNotificationRequest request, CancellationToken cancellationToken)
+        public async Task<NotificationResponseDto?> Handle(CreateNotificationRequest request, CancellationToken cancellationToken)
         {
+            var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri("queue:send-response"));
+
+            var job = await scheduler.ScheduleSend(new Uri("queue:send-response"), request.NotifyDateTime, new SendResponse(request.ChatId, $"Notification for task: {request.Title}"), cancellationToken);
+
             var notification = new Notification() {
+                Id = Guid.NewGuid(),
+                ScheduledJobId = job.TokenId,
                 Title = request.Title,
                 Description = request.Description,
-                AddedDateTime = DateTime.UtcNow,
+                AddedAtUtc = DateTime.UtcNow,
                 ChatId = request.ChatId,
-                NotifyDateTime = request.NotifyDateTime,
+                NotifyAtUtc= request.NotifyDateTime.ToUniversalTime(),
                 PeriodicNotificationPeriod = request.PeriodicNotificationPeriod,
             };
     
-            context.Notifications.Add(notification);
-    
-            await context.SaveChangesAsync(cancellationToken);
-    
-            IScheduler scheduler = await schedulerFactory.GetScheduler(cancellationToken);
+            dbContext.Notifications.Add(notification);
 
-            var jobData = new JobDataMap()
-            {
-                {"ChatId",request.ChatId },
-                {"NotificationId", notification.Id },
-            };
+            await sendEndpoint.Send(new SendResponse(request.ChatId, "Notification was successfully added"), cancellationToken);
 
-            IJobDetail job = JobBuilder.Create<NotifyUserJob>().UsingJobData(jobData).Build();
-    
-            ITrigger trigger = TriggerBuilder.Create().WithIdentity($"notify-user-{notification.Id}").ForJob(job).StartAt(notification.NotifyDateTime).Build();
-    
-            await scheduler.ScheduleJob(job, trigger, cancellationToken);
-    
+            await dbContext.SaveChangesAsync(cancellationToken);
+
             return notification.ToNotificationResponseDto();
         }
     }

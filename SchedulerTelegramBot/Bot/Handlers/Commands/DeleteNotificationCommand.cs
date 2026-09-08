@@ -13,18 +13,11 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
     [CommandAllias("delete_notification")]
     public class DeleteNotificationCommand(ISender sender) : CommandHandler
     {
-        public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
+        public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellationToken)
         {
-            long? chatId = container.HandlingUpdate.Message?.Chat.Id;
+            long chatId = container.ActualUpdate.Chat.Id;
 
-            if (chatId == null)
-            {
-                await Reply("Something went wrong. Try again", cancellationToken: cancellation, replyMarkup: new ReplyKeyboardRemove());
-
-                return Result.Fault();
-            }
-
-            var notifications = await sender.Send(new GetAllNotificationsForUserRequest(chatId.Value), cancellationToken: cancellation);
+            var notifications = await sender.Send(new GetAllNotificationsForUserRequest(chatId), cancellationToken: cancellationToken);
 
             var buttons = new List<InlineKeyboardButton[]> { };
            
@@ -35,9 +28,14 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
                 buttons.Add(new InlineKeyboardButton[] { InlineKeyboardButton.WithCallbackData($"{notification.Title} - {mark}", $"del-notif-{notification.Id}") });
             }
 
-            await Responce("""
-                Here is a list of notifications to delete. Click on one to delete it.
-                """, replyMarkup: buttons.ToArray());
+            if (buttons.Count > 0)
+            {
+                await Responce("Here is a list of all your notificaions. Click on one to delete it", replyMarkup: new InlineKeyboardMarkup(buttons.ToArray()), cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await Responce("No notifications exist at this point. Go to /add_notification to add one", replyMarkup: new ReplyKeyboardRemove(), cancellationToken: cancellationToken);
+            }
 
             return Result.Ok();
         }

@@ -1,5 +1,4 @@
-﻿using MediatR;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegrator;
@@ -12,7 +11,6 @@ namespace SchedulerTelegramBot.Bot.Handlers.Commands
     [CommandAllias("start")]
     public class StartCommand : CommandHandler
     {        
-
         public override async Task<Result> Execute(IAbstractHandlerContainer<Message> container, CancellationToken cancellation)
         {
             await Responce("""
