@@ -27,7 +27,7 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
             notification.Description = request.Description;
             notification.LastUpdatedAtUtc = DateTime.UtcNow;
             notification.ChatId = request.ChatId;
-            notification.NotifyAtUtc = request.NotifyDateTime;
+            notification.NotifyAtUtc = request.NotifyDateTime.ToUniversalTime();
             notification.ScheduledJobId = job.TokenId;
             notification.PeriodicNotificationPeriod = request.PeriodicNotificationPeriod;
 
