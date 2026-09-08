@@ -19,6 +19,8 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
             if (notification == null)
                 throw new Exception(nameof(notification));
 
+            await scheduler.CancelScheduledPublish<SendResponse>(notification.ScheduledJobId, cancellationToken: cancellationToken);
+            
             var job = await scheduler.SchedulePublish(request.NotifyDateTime, new SendResponse(notification.ChatId, $"Time for your task: {notification.Title}"), cancellationToken: cancellationToken);
 
             notification.Title = request.Title;
@@ -31,12 +33,9 @@ namespace SchedulerTelegramBot.Features.Notifications.Handlers
 
             await sendEndpoint.Send(new SendResponse(request.ChatId, $"The notification <{notification.Title}> was updated!"), cancellationToken);
 
-            await scheduler.CancelScheduledPublish<SendResponse>(notification.ScheduledJobId, cancellationToken: cancellationToken);
-
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return notification.ToNotificationResponseDto();
         }
     }
-    
 }

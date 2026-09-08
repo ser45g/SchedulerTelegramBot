@@ -1,15 +1,18 @@
 ﻿using MediatR;
+using SchedulerTelegramBot.Bot.Aspects;
 using SchedulerTelegramBot.Features.Notifications.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegrator;
 using Telegrator.Annotations;
+using Telegrator.Aspects;
 using Telegrator.Handlers;
 
 namespace SchedulerTelegramBot.Bot.Handlers.Commands.UpdateNotification
 {
   
     [CommandHandler]
+    [BeforeExecution<CleanUpUpdateNotificationInputUserStatePreProcessor>()]
     [CommandAllias("update_notification")]
     public class UpdateNotificationCommand_0(ISender sender) : CommandHandler
     {
