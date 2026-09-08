@@ -7,7 +7,7 @@ namespace SchedulerTelegramBot.Mappers
     {
         public static NotificationResponseDto ToNotificationResponseDto(this Notification notification)
         {
-            return new NotificationResponseDto(notification.Id, notification.ChatId, notification.Title, notification.AddedAtUtc, notification.NotifyAtUtc, notification.Description, notification.LastUpdatedAtUtc, notification.PeriodicNotificationPeriod);
+            return new NotificationResponseDto(notification.Id, notification.ChatId, notification.Title, notification.AddedAtUtc, notification.NotifyAtUtc, notification.RowVersion, notification.Description, notification.LastUpdatedAtUtc, notification.PeriodicNotificationPeriod);
         }
     }
 }

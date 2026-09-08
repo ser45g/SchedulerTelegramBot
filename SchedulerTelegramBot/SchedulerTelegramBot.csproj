@@ -28,19 +28,22 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Dorssel.EntityFrameworkCore.Sqlite.Timestamp" Version="8.0.2" />
+		<PackageReference Include="AppAny.Quartz.EntityFrameworkCore.Migrations.PostgreSQL" Version="0.6.0" />
 		<PackageReference Include="DotNetEnv" Version="3.2.0" />
-		<PackageReference Include="MassTransit.EntityFrameworkCore" Version="9.2.0-develop.154" />
-		<PackageReference Include="MassTransit.RabbitMQ" Version="9.2.0-develop.154" />
+		<PackageReference Include="MassTransit.EntityFrameworkCore" Version="9.2.1" />
+		<PackageReference Include="MassTransit.Quartz" Version="9.2.1" />
+		<PackageReference Include="MassTransit.RabbitMQ" Version="9.2.1" />
 		<PackageReference Include="MediatR" Version="14.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.5" />
-		<PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+		<PackageReference Include="Quartz.Serialization.Json" Version="3.20.1" />
 		<PackageReference Include="Telegrator" Version="1.15.9" />
 		<PackageReference Include="Telegrator.Hosting" Version="1.15.9" />
 		<PackageReference Include="Telegrator.Hosting.Web" Version="1.15.9" />

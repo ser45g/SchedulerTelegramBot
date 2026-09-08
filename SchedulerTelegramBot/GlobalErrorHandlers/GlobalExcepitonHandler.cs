@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegrator.MadiatorCore;
@@ -21,8 +16,7 @@ namespace SchedulerTelegramBot.GlobalErrorHandlers
 
         public void HandleException(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
         {
-            _logger.LogError(exception , "Error occurred in {Source}", source);
-            
+            _logger.LogError(exception , "Error occurred in {Source}", source);            
         }
     }
 }

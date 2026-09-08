@@ -5,6 +5,7 @@ namespace SchedulerTelegramBot.Entities
     public class Notification
     {
         public Guid Id { get; set; }
+        public required Guid ScheduledJobId { get; set; }
 
         public required long ChatId { get; set; }
 
@@ -20,7 +21,6 @@ namespace SchedulerTelegramBot.Entities
 
         public TimeSpan? PeriodicNotificationPeriod { get; set; }
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
+        public uint RowVersion { get; set; }
     }
 }

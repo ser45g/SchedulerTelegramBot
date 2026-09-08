@@ -7,7 +7,7 @@ namespace SchedulerTelegramBot.Mappers
     {
         public static SubscriptionResponseDto ToSubscriptionResponseDto(this Subscription subscription)
         {
-            return new SubscriptionResponseDto(subscription.Id, subscription.ChatId, subscription.AddedAtUtc, subscription.EndsAtUtc, subscription.LastUpdatedAtUtc);
+            return new SubscriptionResponseDto(subscription.Id, subscription.ChatId, subscription.AddedAtUtc, subscription.EndsAtUtc, subscription.RowVersion, subscription.LastUpdatedAtUtc);
         }
     }
 }

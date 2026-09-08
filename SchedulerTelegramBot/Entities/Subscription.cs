@@ -14,7 +14,6 @@ namespace SchedulerTelegramBot.Entities
 
         public DateTime? LastUpdatedAtUtc { get; set; }
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
+        public uint RowVersion { get; set; }
     }
 }
